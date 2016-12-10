@@ -4,7 +4,7 @@ import System.IO (readFile)
 import Text.Parsec (parse)
 import Text.Parsec.Char (char, digit, string)
 import Text.Parsec.Prim ((<|>))
-import Text.Parsec.Combinator (many1, sepBy, eof, endBy)
+import Text.Parsec.Combinator (many1, sepBy, endBy)
 
 data Direction = L | R deriving Show
 
