@@ -40,11 +40,11 @@ delta (Orientation (dx, dy)) d = Displacement (d * dx, d * dy)
 addDisplacement :: Displacement -> Displacement -> Displacement
 addDisplacement (Displacement (x1, y1)) (Displacement (x2, y2)) = Displacement (x1 + x2, y1 + y2)
 
-move :: (Orientation, Displacement) -> (Direction, Int) -> (Orientation, Displacement)
-move (v, d) (dir, steps) = (newOrientation, newDisplacement)
+displacements :: Orientation -> [(Direction, Int)] -> [Displacement]
+displacements vi = reverse . snd . foldl f (vi, [])
   where
-    newOrientation = rotate v dir
-    newDisplacement = addDisplacement d (delta newOrientation steps)
+    f (v, ds) (dir, steps) = let newV = rotate v dir in
+      (newV, delta newV steps : ds)
 
 taxicabDistance :: Displacement -> Int
 taxicabDistance (Displacement (dx, dy)) = abs dx + abs dy
@@ -58,5 +58,6 @@ main = do
   case instructions of
     Left err -> print err
     Right (is:_) -> do
-      let (_, finalDisplacement) = foldl move (initialOrientation, initialDisplacement) is
+      let ds = displacements initialOrientation is
+      let finalDisplacement = foldl addDisplacement initialDisplacement ds
       print . taxicabDistance $ finalDisplacement
