@@ -28,7 +28,6 @@ rotationMovement = do
 instructionList = (rotationMovement `sepBy` string ", ") `endBy` char '\n'
 
 newtype Orientation = Orientation (Int, Int) deriving Show
-newtype Position = Position (Int, Int) deriving Show
 newtype Displacement = Displacement (Int, Int) deriving Show
 
 rotate :: Orientation -> Direction -> Orientation
@@ -38,17 +37,14 @@ rotate (Orientation (x, y)) R = Orientation (y, -x)
 delta :: Orientation -> Int -> Displacement
 delta (Orientation (dx, dy)) d = Displacement (d * dx, d * dy)
 
-advancePosition :: Position -> Displacement -> Position
-advancePosition (Position (x, y)) (Displacement (dx, dy)) = Position (x + dx, y + dy)
+addDisplacement :: Displacement -> Displacement -> Displacement
+addDisplacement (Displacement (x1, y1)) (Displacement (x2, y2)) = Displacement (x1 + x2, y1 + y2)
 
-move :: (Orientation, Position) -> (Direction, Int) -> (Orientation, Position)
-move (v, p) (dir, steps) = (newOrientation, newPosition)
+move :: (Orientation, Displacement) -> (Direction, Int) -> (Orientation, Displacement)
+move (v, d) (dir, steps) = (newOrientation, newDisplacement)
   where
     newOrientation = rotate v dir
-    newPosition = advancePosition p (delta newOrientation steps)
-
-displacement :: Position -> Position -> Displacement
-displacement (Position (x1, y1)) (Position (x2, y2)) = Displacement (x2 - x1, y2 - y1)
+    newDisplacement = addDisplacement d (delta newOrientation steps)
 
 taxicabDistance :: Displacement -> Int
 taxicabDistance (Displacement (dx, dy)) = abs dx + abs dy
@@ -56,12 +52,11 @@ taxicabDistance (Displacement (dx, dy)) = abs dx + abs dy
 main :: IO ()
 main = do
   contents <- readFile "inputs/01.txt"
-  let initialPosition = Position (0, 0)
+  let initialDisplacement = Displacement (0, 0)
   let initialOrientation = Orientation (0, 1)
   let instructions = parse instructionList "" contents
   case instructions of
     Left err -> print err
     Right (is:_) -> do
-      let (_, finalPosition) = foldl move (initialOrientation, initialPosition) is
-      let totalDisplacement = displacement initialPosition finalPosition
-      print . taxicabDistance $ totalDisplacement
+      let (_, finalDisplacement) = foldl move (initialOrientation, initialDisplacement) is
+      print . taxicabDistance $ finalDisplacement
