@@ -1,12 +1,10 @@
 module BathroomSecurity (solve) where
 
-import Data.Char (toUpper)
-import Numeric (showHex)
 import Data.Maybe (fromMaybe)
 import Text.Parsec (parse)
 import Text.Parsec.Char (char)
 import Text.Parsec.Prim ((<|>))
-import Text.Parsec.Combinator (many1, sepBy, endBy, eof)
+import Text.Parsec.Combinator (many1, eof)
 
 data Direction = U | R | D | L deriving Show
 
@@ -30,29 +28,39 @@ buttonInstructions = do
   return res
 
 newtype Button = Button (Int, Int) deriving Show
+type ButtonGrid = (Button, (Int, Int) -> Maybe Button, Button -> Char)
 
-button :: (Int, Int) -> Maybe Button
-button (i, j) = if inBounds then Just (Button (i, j)) else Nothing
+buttonOnNormalGrid :: (Int, Int) -> Maybe Button
+buttonOnNormalGrid (i, j) = if inBounds then Just (Button (i, j)) else Nothing
   where
     inBounds = i >= 0 && i <= 2 && j >= 0 && j <= 2
 
-move :: Button -> Direction -> Maybe Button
-move (Button (i,j)) U = button (i - 1, j)
-move (Button (i,j)) R = button (i, j + 1)
-move (Button (i,j)) D = button (i + 1, j)
-move (Button (i,j)) L = button (i, j - 1)
+labelOnNormalGrid :: Button -> Char
+labelOnNormalGrid (Button (i,j)) = head . show $ (i * 3) + j + 1
 
-moveSafely :: Button -> Direction -> Button
-moveSafely b d = fromMaybe b (move b d)
+normalGrid :: ButtonGrid
+normalGrid = (Button (1, 1), buttonOnNormalGrid, labelOnNormalGrid)
 
-bathroomCode :: Button -> [[Direction]] -> [Button]
-bathroomCode b [] = []
-bathroomCode b (x:xs) = newButton : bathroomCode newButton xs
+move :: ButtonGrid -> Button -> Direction -> Maybe Button
+move (_,button,_) (Button (i,j)) U = button (i - 1, j)
+move (_,button,_) (Button (i,j)) R = button (i, j + 1)
+move (_,button,_) (Button (i,j)) D = button (i + 1, j)
+move (_,button,_) (Button (i,j)) L = button (i, j - 1)
+
+moveSafely :: ButtonGrid -> Button -> Direction -> Button
+moveSafely g b d = fromMaybe b (move g b d)
+
+bathroomCode :: ButtonGrid -> [[Direction]] -> [Button]
+bathroomCode g@(bi,_,_) = bathroomCode' bi
   where
-    newButton = foldl moveSafely b x
+    bathroomCode' :: Button -> [[Direction]] -> [Button]
+    bathroomCode' b [] = []
+    bathroomCode' b (x:xs) = newButton : bathroomCode' b xs
+      where
+        newButton = foldl (moveSafely g) b x
 
-buttonLabel :: Button -> Char
-buttonLabel (Button (i,j)) = toUpper . head $ showHex ((i * 3) + j + 1) ""
+formatCode :: ButtonGrid -> [Button] -> [Char]
+formatCode (_,_,f) = map f
 
 solve :: String -> IO ()
 solve input = do
@@ -60,6 +68,5 @@ solve input = do
   case instructions of
     Left err -> print err
     Right is -> do
-      let initialButton = Button (1, 1)
-      let code = map buttonLabel $ bathroomCode initialButton is
-      putStrLn code
+      let codeForNormalGrid = formatCode normalGrid $ bathroomCode normalGrid is
+      putStrLn codeForNormalGrid
