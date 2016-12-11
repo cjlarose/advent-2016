@@ -1,5 +1,7 @@
 module BathroomSecurity (solve) where
 
+import Data.Char (toUpper)
+import Numeric (showHex)
 import Data.Maybe (fromMaybe)
 import Text.Parsec (parse)
 import Text.Parsec.Char (char)
@@ -49,8 +51,8 @@ bathroomCode b (x:xs) = newButton : bathroomCode newButton xs
   where
     newButton = foldl moveSafely b x
 
-buttonNumber :: Button -> Int
-buttonNumber (Button (i,j)) = (i * 3) + j + 1
+buttonLabel :: Button -> Char
+buttonLabel (Button (i,j)) = toUpper . head $ showHex ((i * 3) + j + 1) ""
 
 solve :: String -> IO ()
 solve input = do
@@ -59,5 +61,5 @@ solve input = do
     Left err -> print err
     Right is -> do
       let initialButton = Button (1, 1)
-      let code = concatMap (show . buttonNumber) $ bathroomCode initialButton is
+      let code = map buttonLabel $ bathroomCode initialButton is
       putStrLn code
