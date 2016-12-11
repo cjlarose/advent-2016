@@ -8,7 +8,7 @@ import Text.Parsec.Combinator (many1, sepBy, endBy)
 
 data Direction = L | R deriving Show
 data Orientation = N | E | S | W deriving Show
-newtype Displacement = Displacement (Int, Int) deriving Show
+newtype Displacement = Displacement (Int, Int) deriving (Show, Eq)
 
 rotateR = do
   res <- char 'R'
@@ -61,6 +61,12 @@ displacements di = reverse . foldl f [di]
 taxicabDistance :: Displacement -> Int
 taxicabDistance (Displacement (dx, dy)) = abs dx + abs dy
 
+takeUpToDuplicate :: Eq x => [x] -> [x]
+takeUpToDuplicate xs = f xs []
+  where
+    f [] _ = []
+    f (x:xs) ys = if x `elem` ys then [x] else x : f xs (x:ys)
+
 main :: IO ()
 main = do
   contents <- readFile "inputs/01.txt"
@@ -73,4 +79,6 @@ main = do
       let cs = cardinalize initialOrientation is
       let ds = displacements initialDisplacement cs
       let step1Answer = taxicabDistance . last $ ds
-      print step1Answer
+      let step2Answer = taxicabDistance . last . takeUpToDuplicate $ ds
+      putStrLn $ "Step 1: " ++ show step1Answer
+      putStrLn $ "Step 2: " ++ show step2Answer
