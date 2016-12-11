@@ -2,8 +2,8 @@ module SquaresWithThreeSides (solve) where
 
 import Text.Parsec (parse)
 import Text.Parsec.Char (digit, char)
-import Text.Parsec.Prim ((<|>), skipMany)
-import Text.Parsec.Combinator (many1, eof, skipMany1, sepBy, sepBy1)
+import Text.Parsec.Prim (skipMany)
+import Text.Parsec.Combinator (many1, eof, skipMany1)
 
 eol = char '\n'
 
