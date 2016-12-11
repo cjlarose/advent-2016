@@ -7,6 +7,8 @@ import Text.Parsec.Prim ((<|>))
 import Text.Parsec.Combinator (many1, sepBy, endBy)
 
 data Direction = L | R deriving Show
+data Orientation = N | E | S | W deriving Show
+newtype Displacement = Displacement (Int, Int) deriving Show
 
 rotateR = do
   res <- char 'R'
@@ -27,24 +29,34 @@ rotationMovement = do
 
 instructionList = (rotationMovement `sepBy` string ", ") `endBy` char '\n'
 
-newtype Orientation = Orientation (Int, Int) deriving Show
-newtype Displacement = Displacement (Int, Int) deriving Show
-
 rotate :: Orientation -> Direction -> Orientation
-rotate (Orientation (x, y)) L = Orientation (-y, x)
-rotate (Orientation (x, y)) R = Orientation (y, -x)
+rotate N R = E
+rotate E R = S
+rotate S R = W
+rotate W R = N
+rotate N L = W
+rotate W L = S
+rotate S L = E
+rotate E L = N
 
-delta :: Orientation -> Int -> Displacement
-delta (Orientation (dx, dy)) d = Displacement (d * dx, d * dy)
+cardinalize :: Orientation -> [(Direction, Int)] -> [(Orientation, Int)]
+cardinalize v [] = []
+cardinalize v ((dir, steps):xs) = let newDir = rotate v dir in (newDir, steps) : cardinalize newDir xs
 
-addDisplacement :: Displacement -> Displacement -> Displacement
-addDisplacement (Displacement (x1, y1)) (Displacement (x2, y2)) = Displacement (x1 + x2, y1 + y2)
+step1 :: Orientation -> Displacement -> Displacement
+step1 N (Displacement (x, y)) = Displacement (x, y + 1)
+step1 E (Displacement (x, y)) = Displacement (x + 1, y)
+step1 S (Displacement (x, y)) = Displacement (x, y - 1)
+step1 W (Displacement (x, y)) = Displacement (x - 1, y)
 
-displacements :: Orientation -> [(Direction, Int)] -> [Displacement]
-displacements vi = reverse . snd . foldl f (vi, [])
+advance :: Displacement -> Orientation -> Int -> [Displacement]
+advance d c n = tail . take (n + 1) $ iterate (step1 c) d
+
+displacements :: Displacement -> [(Orientation, Int)] -> [Displacement]
+displacements di = reverse . foldl f [di]
   where
-    f (v, ds) (dir, steps) = let newV = rotate v dir in
-      (newV, delta newV steps : ds)
+    f :: [Displacement] -> (Orientation, Int) -> [Displacement]
+    f (d:ds) (c, n) = let newDs = reverse (advance d c n) in newDs ++ (d:ds)
 
 taxicabDistance :: Displacement -> Int
 taxicabDistance (Displacement (dx, dy)) = abs dx + abs dy
@@ -53,11 +65,12 @@ main :: IO ()
 main = do
   contents <- readFile "inputs/01.txt"
   let initialDisplacement = Displacement (0, 0)
-  let initialOrientation = Orientation (0, 1)
+  let initialOrientation = N
   let instructions = parse instructionList "" contents
   case instructions of
     Left err -> print err
     Right (is:_) -> do
-      let ds = displacements initialOrientation is
-      let finalDisplacement = foldl addDisplacement initialDisplacement ds
-      print . taxicabDistance $ finalDisplacement
+      let cs = cardinalize initialOrientation is
+      let ds = displacements initialDisplacement cs
+      let step1Answer = taxicabDistance . last $ ds
+      print step1Answer
