@@ -4,7 +4,7 @@ import System.IO (readFile)
 import Text.Parsec (parse)
 import Text.Parsec.Char (char, digit, string)
 import Text.Parsec.Prim ((<|>))
-import Text.Parsec.Combinator (many1, sepBy, endBy)
+import Text.Parsec.Combinator (many1, sepBy, endBy, eof)
 
 data Direction = L | R deriving Show
 data Orientation = N | E | S | W deriving Show
@@ -22,7 +22,11 @@ rotationMovement = do
   steps <- movement
   return (dir, steps)
 
-instructionList = (rotationMovement `sepBy` string ", ") `endBy` char '\n'
+instructionList = do
+  list <- rotationMovement `sepBy` string ", "
+  char '\n'
+  eof
+  return list
 
 rotate :: Orientation -> Direction -> Orientation
 rotate N R = E
@@ -69,7 +73,7 @@ solve input = do
   let instructions = parse instructionList "" input
   case instructions of
     Left err -> print err
-    Right (is:_) -> do
+    Right is -> do
       let cs = cardinalize initialOrientation is
       let ds = displacements initialDisplacement cs
       let step1Answer = taxicabDistance . last $ ds
