@@ -4,11 +4,13 @@ import System.Environment (getArgs)
 import qualified Taxicab
 import qualified BathroomSecurity
 import qualified SquaresWithThreeSides
+import qualified SecurityThroughObscurity
 
 solver :: Int -> (String -> IO ())
 solver 1 = Taxicab.solve
 solver 2 = BathroomSecurity.solve
 solver 3 = SquaresWithThreeSides.solve
+solver 4 = SecurityThroughObscurity.solve
 
 main :: IO ()
 main = do
