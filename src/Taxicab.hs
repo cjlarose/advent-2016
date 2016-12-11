@@ -10,13 +10,8 @@ data Direction = L | R deriving Show
 data Orientation = N | E | S | W deriving Show
 newtype Displacement = Displacement (Int, Int) deriving (Show, Eq)
 
-rotateR = do
-  res <- char 'R'
-  return R
-
-rotateL = do
-  res <- char 'L'
-  return L
+rotateR = char 'R' >>= (\_ -> pure R)
+rotateL = char 'L' >>= (\_ -> pure L)
 
 movement = do
   res <- many1 digit
