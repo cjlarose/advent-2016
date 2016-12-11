@@ -19,14 +19,21 @@ tripletLine = do
   skipMany1 (char ' ')
   c <- sideLength
   eol
-  return [a, b, c]
+  return (a, b, c)
 
 triplets = do
   res <- many1 tripletLine
   eof
   return res
 
+isTriangle :: (Int, Int, Int) -> Bool
+isTriangle (a, b, c) = a + b > c && a + c > b && b + c > a
+
 solve :: String -> IO ()
 solve input = do
   let triangleData = parse triplets "" input
-  print triangleData
+  case triangleData of
+    Left err -> print err
+    Right ts -> do
+      let numTriangles = length . filter isTriangle $ ts
+      print numTriangles
