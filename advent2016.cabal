@@ -21,3 +21,4 @@ executable advent2016
                      , parsec
                      , cryptohash
                      , bytestring
+                     , nibblestring
