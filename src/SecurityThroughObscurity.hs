@@ -5,7 +5,7 @@ import Text.Parsec (parse)
 import Text.Parsec.Char (digit, char, lower)
 import Text.Parsec.Combinator (many1, eof)
 
-data Room = Room { name :: String
+data Room = Room { name :: [String]
                  , sectorId :: Int
                  , checksum :: String } deriving Show
 
@@ -20,7 +20,7 @@ roomName = do
     res <- many1 lower
     char '-'
     return res)
-  return . intercalate "-" $ parts
+  return parts
 
 roomLine = do
   rName <- roomName
@@ -41,11 +41,11 @@ roomLines = do
 frequencies :: Ord a => [a] -> [(a, Int)]
 frequencies = map (\x -> (head x, length x)) . group . sort
 
-calcChecksum :: String -> String
-calcChecksum = map fst . take 5 . sortOn (\(x, f) -> (-f, x)) . frequencies . filter (/= '-')
+calcChecksum :: Ord a => [a] -> [a]
+calcChecksum = map fst . take 5 . sortOn (\(x, f) -> (-f, x)) . frequencies
 
 realRoom :: Room -> Bool
-realRoom room = checksum room == calcChecksum (name room)
+realRoom room = checksum room == calcChecksum (concat . name  $ room)
 
 solve :: String -> IO ()
 solve input = do
