@@ -1,5 +1,6 @@
 module SecurityThroughObscurity (solve) where
 
+import Data.List (group, sort, sortOn)
 import Text.Parsec (parse)
 import Text.Parsec.Char (digit, char, lower)
 import Text.Parsec.Combinator (many1, eof)
@@ -37,7 +38,21 @@ roomLines = do
   eof
   return lines
 
+frequencies :: Ord a => [a] -> [(a, Int)]
+frequencies = map (\x -> (head x, length x)) . group . sort
+
+calcChecksum :: Ord a => [a] -> [a]
+calcChecksum = map fst . take 5 . sortOn (\(x, f) -> (-f, x)) . frequencies
+
+realRoom :: Room -> Bool
+realRoom room = checksum room == calcChecksum (name room)
+
 solve :: String -> IO ()
 solve input = do
-  let roomData = parse roomLines "" input
-  print roomData
+  let parseResult = parse roomLines "" input
+  case parseResult of
+    Left err -> print err
+    Right roomData -> do
+      let realRooms = filter realRoom roomData
+      let answer = sum . map sectorId $ realRooms
+      print answer
