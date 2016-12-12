@@ -3,16 +3,18 @@ module Chess (solve) where
 import Numeric (showHex)
 import Data.Char (isSpace)
 import qualified Data.ByteString as B
-import Crypto.Hash.MD5 (hash)
-import Data.ByteString.UTF8 (fromString, ByteString(..))
+import Data.ByteString.Char8 (pack)
+import qualified Crypto.Hash.MD5 as MD5
 
-allHashes :: String -> [ByteString]
-allHashes prefix = map (hash . fromString . (\n -> prefix ++ show n)) [0..]
+allHashes :: String -> [B.ByteString]
+allHashes prefix = map (MD5.finalize . MD5.update prefixCtx . pack . show) [0..]
+  where
+    prefixCtx = MD5.update MD5.init $ pack prefix
 
 hasZerosPrefix :: Int -> String -> Bool
 hasZerosPrefix n = all (== '0') . take n
 
-toHex :: ByteString -> String
+toHex :: B.ByteString -> String
 toHex = concatMap (`showHex` "") . B.unpack
 
 doorCode :: String -> String

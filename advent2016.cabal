@@ -21,4 +21,3 @@ executable advent2016
                      , parsec
                      , cryptohash
                      , bytestring
-                     , utf8-string
