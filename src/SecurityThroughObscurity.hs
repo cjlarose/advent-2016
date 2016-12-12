@@ -1,6 +1,6 @@
 module SecurityThroughObscurity (solve) where
 
-import Data.List (group, sort, sortOn)
+import Data.List (group, sort, sortOn, intercalate)
 import Text.Parsec (parse)
 import Text.Parsec.Char (digit, char, lower)
 import Text.Parsec.Combinator (many1, eof)
@@ -20,7 +20,7 @@ roomName = do
     res <- many1 lower
     char '-'
     return res)
-  return . concat $ parts
+  return . intercalate "-" $ parts
 
 roomLine = do
   rName <- roomName
@@ -41,8 +41,8 @@ roomLines = do
 frequencies :: Ord a => [a] -> [(a, Int)]
 frequencies = map (\x -> (head x, length x)) . group . sort
 
-calcChecksum :: Ord a => [a] -> [a]
-calcChecksum = map fst . take 5 . sortOn (\(x, f) -> (-f, x)) . frequencies
+calcChecksum :: String -> String
+calcChecksum = map fst . take 5 . sortOn (\(x, f) -> (-f, x)) . frequencies . filter (/= '-')
 
 realRoom :: Room -> Bool
 realRoom room = checksum room == calcChecksum (name room)
