@@ -1,6 +1,7 @@
 module SecurityThroughObscurity (solve) where
 
-import Data.List (group, sort, sortOn, intercalate)
+import Data.Char (ord, chr)
+import Data.List (group, sort, sortOn, find)
 import Text.Parsec (parse)
 import Text.Parsec.Char (digit, char, lower)
 import Text.Parsec.Combinator (many1, eof)
@@ -47,6 +48,14 @@ calcChecksum = map fst . take 5 . sortOn (\(x, f) -> (-f, x)) . frequencies
 realRoom :: Room -> Bool
 realRoom room = checksum room == calcChecksum (concat . name  $ room)
 
+shiftChar :: Int -> Char -> Char
+shiftChar n c = chr $ ord 'a' + (ord c - ord 'a' + n) `mod` 26
+
+decryptedName :: Room -> String
+decryptedName room = unwords . map decryptPart . name $ room
+  where
+    decryptPart = map (shiftChar (sectorId room))
+
 solve :: String -> IO ()
 solve input = do
   let parseResult = parse roomLines "" input
@@ -54,5 +63,7 @@ solve input = do
     Left err -> print err
     Right roomData -> do
       let realRooms = filter realRoom roomData
-      let answer = sum . map sectorId $ realRooms
-      print answer
+      let sectorIdSum = sum . map sectorId $ realRooms
+      let northPoleRoom = find (\r -> decryptedName r == "northpole object storage") realRooms
+      print sectorIdSum
+      print northPoleRoom
