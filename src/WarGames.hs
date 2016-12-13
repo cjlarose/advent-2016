@@ -19,9 +19,12 @@ interestingPrefix = NS.pack $ replicate 5 0
 interestingHash :: NS.NibbleString -> Bool
 interestingHash = NS.isPrefixOf interestingPrefix
 
+index :: NS.NibbleString -> Int -> NS.Nibble
+index ns i = NS.head . NS.drop i $ ns
+
 doorCode :: String -> String
 doorCode = take 8 .
-           map (head . (`showHex` "") . NS.head . NS.drop 5) .
+           map (head . (`showHex` "") . (`index` 5)) .
            filter interestingHash .
            allHashes
 
