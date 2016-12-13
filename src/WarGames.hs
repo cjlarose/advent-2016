@@ -1,4 +1,4 @@
-module Chess (solve) where
+module WarGames (solve) where
 
 import Numeric (showHex)
 import Data.Char (isSpace)
