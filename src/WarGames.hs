@@ -22,9 +22,12 @@ interestingHash = NS.isPrefixOf interestingPrefix
 index :: NS.NibbleString -> Int -> NS.Nibble
 index ns i = NS.head . NS.drop i $ ns
 
+nibbleToHexChar :: NS.Nibble -> Char
+nibbleToHexChar = head . (`showHex` "")
+
 doorCode :: String -> String
 doorCode = take 8 .
-           map (head . (`showHex` "") . (`index` 5)) .
+           map (nibbleToHexChar . (`index` 5)) .
            filter interestingHash .
            allHashes
 
