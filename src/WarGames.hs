@@ -2,6 +2,7 @@ module WarGames (solve) where
 
 import Numeric (showHex)
 import Data.Char (isSpace)
+import Data.List (any, sort)
 import qualified Data.ByteString as B
 import Data.ByteString.Char8 (pack)
 import qualified Crypto.Hash.MD5 as MD5
@@ -31,8 +32,27 @@ doorCode = take 8 .
            filter interestingHash .
            allHashes
 
+nonSequentialDoorCode :: String -> String
+nonSequentialDoorCode = map snd .
+                        sort .
+                        assembleCode [] .
+                        map positionAndValue .
+                        filter validPosition .
+                        filter interestingHash .
+                        allHashes
+  where
+    validPosition ns = index ns 5 < 8
+    positionAndValue ns = (fromIntegral $ index ns 5, nibbleToHexChar $ index ns 6)
+    assembleCode :: [(Int, Char)] -> [(Int, Char)] -> [(Int, Char)]
+    assembleCode keep (x@(i,_):xs) | length keep == 8 = keep
+                                   | otherwise = if any ((== i) . fst) keep
+                                                 then assembleCode keep xs
+                                                 else assembleCode (x:keep) xs
+
 solve :: String -> IO ()
 solve input = do
   let stripped = takeWhile (not . isSpace) input
   let code = doorCode stripped
+  let nonSequentialCode = nonSequentialDoorCode stripped
   putStrLn code
+  putStrLn nonSequentialCode
