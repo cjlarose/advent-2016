@@ -33,9 +33,7 @@ doorCode = take 8 .
            allHashes
 
 nonSequentialDoorCode :: String -> String
-nonSequentialDoorCode = map snd .
-                        sort .
-                        assembleCode [] .
+nonSequentialDoorCode = assembleCode [] .
                         map positionAndValue .
                         filter validPosition .
                         filter interestingHash .
@@ -43,8 +41,8 @@ nonSequentialDoorCode = map snd .
   where
     validPosition ns = index ns 5 < 8
     positionAndValue ns = (fromIntegral $ index ns 5, nibbleToHexChar $ index ns 6)
-    assembleCode :: [(Int, Char)] -> [(Int, Char)] -> [(Int, Char)]
-    assembleCode keep (x@(i,_):xs) | length keep == 8 = keep
+    assembleCode :: [(Int, Char)] -> [(Int, Char)] -> String
+    assembleCode keep (x@(i,_):xs) | length keep == 8 = map snd . sort $ keep
                                    | otherwise = if any ((== i) . fst) keep
                                                  then assembleCode keep xs
                                                  else assembleCode (x:keep) xs
