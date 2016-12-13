@@ -49,8 +49,8 @@ nonSequentialDoorCode = assembleCode [] .
 
 solve :: String -> IO ()
 solve input = do
-  let stripped = takeWhile (not . isSpace) input
-  let code = doorCode stripped
-  let nonSequentialCode = nonSequentialDoorCode stripped
+  let doorId = takeWhile (not . isSpace) input
+  let code = doorCode doorId
+  let nonSequentialCode = nonSequentialDoorCode doorId
   putStrLn code
   putStrLn nonSequentialCode
