@@ -10,23 +10,14 @@ data Direction = L | R deriving Show
 data Orientation = N | E | S | W deriving Show
 newtype Displacement = Displacement (Int, Int) deriving (Show, Eq)
 
-rotateR = char 'R' >>= (\_ -> pure R)
-rotateL = char 'L' >>= (\_ -> pure L)
+rotateR = R <$ char 'R'
+rotateL = L <$ char 'L'
 
-movement = do
-  res <- many1 digit
-  return (read res :: Int)
+movement = read <$> many1 digit
 
-rotationMovement = do
-  dir <- rotateR <|> rotateL
-  steps <- movement
-  return (dir, steps)
+rotationMovement = (\a b -> (a, b)) <$> (rotateR <|> rotateL) <*> movement
 
-instructionList = do
-  list <- rotationMovement `sepBy` string ", "
-  char '\n'
-  eof
-  return list
+instructionList = ((rotationMovement `sepBy` string ", ") <* char '\n') <* eof
 
 rotate :: Orientation -> Direction -> Orientation
 rotate N R = E
