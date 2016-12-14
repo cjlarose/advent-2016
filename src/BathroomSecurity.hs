@@ -10,22 +10,16 @@ data Direction = U | R | D | L deriving Show
 
 eol = char '\n'
 
-up =    char 'U' >> pure U
-right = char 'R' >> pure R
-down =  char 'D' >> pure D
-left =  char 'L' >> pure L
+up =    U <$ char 'U'
+right = R <$ char 'R'
+down =  D <$ char 'D'
+left =  L <$ char 'L'
 
 direction = up <|> right <|> down <|> left
 
-directionLine = do
-  line <- many1 direction
-  eol
-  return line
+directionLine = many1 direction <* eol
 
-buttonInstructions = do
-  res <- many1 directionLine
-  eof
-  return res
+buttonInstructions = many1 directionLine <* eof
 
 newtype Button = Button (Int, Int) deriving Show
 type ButtonGrid = (Button, (Int, Int) -> Maybe Button, Button -> Char)
