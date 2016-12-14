@@ -12,16 +12,9 @@ data Room = Room { name :: [String]
 
 eol = char '\n'
 
-sectorIdParser = do
-  res <- many1 digit
-  return (read res :: Int)
+sectorIdParser = read <$> many1 digit
 
-roomName = do
-  parts <- many1 (do
-    res <- many1 lower
-    char '-'
-    return res)
-  return parts
+roomName = many1 (many1 lower <* char '-')
 
 roomLine = do
   rName <- roomName
@@ -34,10 +27,7 @@ roomLine = do
                sectorId = sId,
                checksum = sum}
 
-roomLines = do
-  lines <- many1 roomLine
-  eof
-  return lines
+roomLines = many1 roomLine <* eof
 
 frequencies :: Ord a => [a] -> [(a, Int)]
 frequencies = map (\x -> (head x, length x)) . group . sort
