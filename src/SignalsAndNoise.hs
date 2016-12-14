@@ -5,12 +5,15 @@ import Data.List (group, sort, transpose)
 import Control.Arrow ((&&&))
 
 mostFrequentChar :: String -> Char
-mostFrequentChar = snd . minimum . map ((negate . length) &&& head) . group . sort
+mostFrequentChar = snd . maximum . map (length &&& head) . group . sort
 
-signal :: [String] -> String
-signal = map mostFrequentChar . transpose
+leastFrequentChar :: String -> Char
+leastFrequentChar = snd . minimum . map (length &&& head) . group . sort
 
 solve :: String -> IO ()
 solve input = do
-  let messages = lines input
-  putStrLn $ signal messages
+  let messages = transpose . lines $ input
+  let mostFrequent = map mostFrequentChar messages
+  let leastFrequent = map leastFrequentChar messages
+  putStrLn mostFrequent
+  putStrLn leastFrequent
