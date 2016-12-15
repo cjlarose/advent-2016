@@ -8,6 +8,7 @@ import qualified SecurityThroughObscurity
 import qualified WarGames
 import qualified SignalsAndNoise
 import qualified InternetProtocolVersion7
+import qualified TwoFactorAuthentication
 
 solver :: Int -> (String -> IO ())
 solver 1 = Taxicab.solve
@@ -17,6 +18,7 @@ solver 4 = SecurityThroughObscurity.solve
 solver 5 = WarGames.solve
 solver 6 = SignalsAndNoise.solve
 solver 7 = InternetProtocolVersion7.solve
+solver 8 = TwoFactorAuthentication.solve
 
 main :: IO ()
 main = do
