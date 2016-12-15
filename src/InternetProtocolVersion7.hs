@@ -1,16 +1,61 @@
+{-# LANGUAGE FlexibleContexts #-}
+
 module InternetProtocolVersion7 (solve) where
 
 import Data.Char (isLower)
+import Text.Parsec.Prim (ParsecT, Stream, parse, many, try, (<|>))
 import Text.Parsec.Char (char, lower, satisfy)
-import Text.Parsec.Prim (parse)
+import Text.Parsec.Combinator (between, many1, eof)
 
+data Sequence = NonHypernetSequence [String] | HypernetSequence [String] deriving Show
+data IPV7 = IPWithoutSnoopingSupport [Sequence] | IPWithSnoopingSupport [Sequence] deriving Show
+
+eol :: Stream s m Char => ParsecT s u m Char
+eol = char '\n'
+
+abba :: Stream s m Char => ParsecT s u m String
 abba = do
   a <- lower
   b <- satisfy (\x -> isLower x && x /= a)
   char b
   char a
+  return [a, b, b, a]
+
+sequenceContents :: Stream s m Char => ParsecT s u m [String]
+sequenceContents = many1 (try abba <|> (pure <$> lower))
+
+nonHypernetSequence :: Stream s m Char => ParsecT s u m Sequence
+nonHypernetSequence = NonHypernetSequence <$> sequenceContents
+
+hypernetSequence :: Stream s m Char => ParsecT s u m Sequence
+hypernetSequence = HypernetSequence <$> between (char '[') (char ']') sequenceContents
+
+none f = not . any f
+
+supportsSnooping :: [Sequence] -> Bool
+supportsSnooping xs = any hasAbba nonHypernetSequences && none hasAbba hypernetSequences
+  where
+    hasAbba = any (\x -> length x > 1)
+    nonHypernetSequences = [x | NonHypernetSequence x <- xs]
+    hypernetSequences = [x | HypernetSequence x <- xs]
+
+ipV7 :: Stream s m Char => ParsecT s u m IPV7
+ipV7 = do
+  sequences <- many $ nonHypernetSequence <|> hypernetSequence
+  eol
+  return (if supportsSnooping sequences then
+            IPWithSnoopingSupport sequences
+          else
+            IPWithoutSnoopingSupport sequences)
+
+ipList :: Stream s m Char => ParsecT s u m [IPV7]
+ipList = many ipV7 <* eof
 
 solve :: String -> IO ()
 solve input = do
-  let parsed = parse abba "" input
-  print parsed
+  let parsed = parse ipList "" input
+  case parsed of
+    Left err -> print err
+    Right ips -> do
+      let ipsWithSnoopingSupport = [x | IPWithSnoopingSupport x <- ips]
+      print . length $ ipsWithSnoopingSupport
