@@ -30,7 +30,14 @@ supernetSequence = SupernetSequence <$> sequenceContents
 hypernetSequence :: Stream s m Char => ParsecT s u m Sequence
 hypernetSequence = HypernetSequence <$> between (char '[') (char ']') sequenceContents
 
+none :: (a -> Bool) -> [a] -> Bool
 none f = not . any f
+
+ipV7 :: Stream s m Char => ParsecT s u m IPV7
+ipV7 = many (supernetSequence <|> hypernetSequence) <* eol
+
+ipList :: Stream s m Char => ParsecT s u m [IPV7]
+ipList = many ipV7 <* eof
 
 supportsSnooping :: IPV7 -> Bool
 supportsSnooping xs = any hasAbba supernetSequences && none hasAbba hypernetSequences
@@ -38,12 +45,6 @@ supportsSnooping xs = any hasAbba supernetSequences && none hasAbba hypernetSequ
     hasAbba = any (\x -> length x > 1)
     supernetSequences = [x | SupernetSequence x <- xs]
     hypernetSequences = [x | HypernetSequence x <- xs]
-
-ipV7 :: Stream s m Char => ParsecT s u m IPV7
-ipV7 = many (supernetSequence <|> hypernetSequence) <* eol
-
-ipList :: Stream s m Char => ParsecT s u m [IPV7]
-ipList = many ipV7 <* eof
 
 solve :: String -> IO ()
 solve input = do
