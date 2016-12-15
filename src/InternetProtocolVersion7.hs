@@ -43,8 +43,8 @@ hasAbba s = do
 none :: (a -> Bool) -> [a] -> Bool
 none f = not . any f
 
-supportsSnooping :: IPV7 -> Bool
-supportsSnooping xs = any hasAbba supernetSequences && none hasAbba hypernetSequences
+supportsTLS :: IPV7 -> Bool
+supportsTLS xs = any hasAbba supernetSequences && none hasAbba hypernetSequences
   where
     supernetSequences = [x | SupernetSequence x <- xs]
     hypernetSequences = [x | HypernetSequence x <- xs]
@@ -55,5 +55,5 @@ solve input = do
   case parsed of
     Left err -> print err
     Right ips -> do
-      let part1 = length . filter supportsSnooping $ ips
-      print part1
+      let numTLS = length . filter supportsTLS $ ips
+      print numTLS
