@@ -8,7 +8,7 @@ import Text.Parsec.Char (char, lower, satisfy)
 import Text.Parsec.Combinator (between, many1, eof)
 
 data Sequence = NonHypernetSequence [String] | HypernetSequence [String] deriving Show
-data IPV7 = IPWithoutSnoopingSupport [Sequence] | IPWithSnoopingSupport [Sequence] deriving Show
+type IPV7 = [Sequence]
 
 eol :: Stream s m Char => ParsecT s u m Char
 eol = char '\n'
@@ -32,7 +32,7 @@ hypernetSequence = HypernetSequence <$> between (char '[') (char ']') sequenceCo
 
 none f = not . any f
 
-supportsSnooping :: [Sequence] -> Bool
+supportsSnooping :: IPV7 -> Bool
 supportsSnooping xs = any hasAbba nonHypernetSequences && none hasAbba hypernetSequences
   where
     hasAbba = any (\x -> length x > 1)
@@ -40,13 +40,7 @@ supportsSnooping xs = any hasAbba nonHypernetSequences && none hasAbba hypernetS
     hypernetSequences = [x | HypernetSequence x <- xs]
 
 ipV7 :: Stream s m Char => ParsecT s u m IPV7
-ipV7 = do
-  sequences <- many $ nonHypernetSequence <|> hypernetSequence
-  eol
-  return (if supportsSnooping sequences then
-            IPWithSnoopingSupport sequences
-          else
-            IPWithoutSnoopingSupport sequences)
+ipV7 = (many $ nonHypernetSequence <|> hypernetSequence) <* eol
 
 ipList :: Stream s m Char => ParsecT s u m [IPV7]
 ipList = many ipV7 <* eof
@@ -57,5 +51,4 @@ solve input = do
   case parsed of
     Left err -> print err
     Right ips -> do
-      let ipsWithSnoopingSupport = [x | IPWithSnoopingSupport x <- ips]
-      print . length $ ipsWithSnoopingSupport
+      print . length . (filter supportsSnooping) $ ips
