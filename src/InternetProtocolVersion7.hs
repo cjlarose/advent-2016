@@ -40,7 +40,7 @@ supportsSnooping xs = any hasAbba nonHypernetSequences && none hasAbba hypernetS
     hypernetSequences = [x | HypernetSequence x <- xs]
 
 ipV7 :: Stream s m Char => ParsecT s u m IPV7
-ipV7 = (many $ nonHypernetSequence <|> hypernetSequence) <* eol
+ipV7 = many (nonHypernetSequence <|> hypernetSequence) <* eol
 
 ipList :: Stream s m Char => ParsecT s u m [IPV7]
 ipList = many ipV7 <* eof
@@ -51,4 +51,5 @@ solve input = do
   case parsed of
     Left err -> print err
     Right ips -> do
-      print . length . (filter supportsSnooping) $ ips
+      let part1 = length . filter supportsSnooping $ ips
+      print part1
