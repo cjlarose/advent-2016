@@ -2,14 +2,15 @@
 
 module TwoFactorAuthentication (solve) where
 
-import Data.Array.Unboxed (UArray)
-import Data.Array.IArray (array, (//), bounds, (!))
+import Data.Array.IArray (Array, listArray, (//), bounds, (!))
+import Data.Monoid (Sum(..), getSum)
+import Data.List (foldl')
 import Text.Parsec.Prim (Stream, ParsecT, many, (<|>), parse, try)
 import Text.Parsec.Char (char, string, digit)
 import Text.Parsec.Combinator (eof, many1)
 
 data Instruction = DrawRect Int Int | RotateRow Int Int | RotateColumn Int Int deriving Show
-data Screen = Screen (UArray (Int, Int) Bool)
+data Screen = Screen (Array (Int, Int) Bool)
 
 instance Show Screen where
   show (Screen s) = unlines . map (\i -> map (charFor i) [jStart..jEnd]) $ [iStart..iEnd]
@@ -42,7 +43,7 @@ instructionList :: Stream s m Char => ParsecT s u m [Instruction]
 instructionList = many instruction <* eof
 
 emptyScreen :: Screen
-emptyScreen = Screen $ array ((0,0), (5,49)) []
+emptyScreen = Screen $ listArray ((0,0), (5,49)) (repeat False)
 
 updateScreen :: Screen -> Instruction -> Screen
 updateScreen (Screen a) inst = Screen $ a // updates
@@ -56,10 +57,16 @@ updateScreen (Screen a) inst = Screen $ a // updates
                 RotateRow i n -> [((i, j), a ! (i, (j - n) `mod` width)) | j <- [0..maxJ]]
                 RotateColumn j n -> [((i, j), a ! ((i - n) `mod` height, j)) | i <- [0..maxI]]
 
+pixelCount :: Screen -> Int
+pixelCount (Screen a) = getSum $ foldMap (Sum . fromEnum) a
+
 solve :: String -> IO ()
 solve input = do
   let parsed = parse instructionList "" input
   case parsed of
     Left err -> print err
     Right instructions -> do
-      print instructions
+      let image = foldl' updateScreen emptyScreen instructions
+      let count = pixelCount image
+      print image
+      putStrLn $ show count ++ " pixels ON"
