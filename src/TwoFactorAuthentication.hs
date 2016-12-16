@@ -45,7 +45,16 @@ emptyScreen :: Screen
 emptyScreen = Screen $ array ((0,0), (5,49)) []
 
 updateScreen :: Screen -> Instruction -> Screen
-updateScreen (Screen s) (DrawRect w h) = Screen $ s // [((i, j), True) | i <- [0..h - 1], j <- [0..w - 1]]
+updateScreen (Screen a) inst = Screen $ a // updates
+  where
+    maxJ = snd . snd . bounds $ a
+    maxI = fst . snd . bounds $ a
+    width = maxJ + 1
+    height = maxI + 1
+    updates = case inst of
+                DrawRect w h -> [((i, j), True) | i <- [0..h - 1], j <- [0..w - 1]]
+                RotateRow i n -> [((i, j), a ! (i, (j - n) `mod` width)) | j <- [0..maxJ]]
+                RotateColumn j n -> [((i, j), a ! ((i - n) `mod` height, j)) | i <- [0..maxI]]
 
 solve :: String -> IO ()
 solve input = do
