@@ -2,11 +2,20 @@
 
 module TwoFactorAuthentication (solve) where
 
+import Data.Array.Unboxed (UArray)
+import Data.Array.IArray (array, (//), bounds, (!))
 import Text.Parsec.Prim (Stream, ParsecT, many, (<|>), parse, try)
 import Text.Parsec.Char (char, string, digit)
 import Text.Parsec.Combinator (eof, many1)
 
 data Instruction = DrawRect Int Int | RotateRow Int Int | RotateColumn Int Int deriving Show
+data Screen = Screen (UArray (Int, Int) Bool)
+
+instance Show Screen where
+  show (Screen s) = unlines . map (\i -> map (charFor i) [jStart..jEnd]) $ [iStart..iEnd]
+    where
+      ((iStart, jStart), (iEnd, jEnd)) = bounds s
+      charFor i j = if s ! (i, j) then '#' else '.'
 
 eol :: Stream s m Char => ParsecT s u m Char
 eol = char '\n'
@@ -31,6 +40,12 @@ instruction = (rectInstruction <|> rotateInstruction) <* eol
 
 instructionList :: Stream s m Char => ParsecT s u m [Instruction]
 instructionList = many instruction <* eof
+
+emptyScreen :: Screen
+emptyScreen = Screen $ array ((0,0), (5,49)) []
+
+updateScreen :: Screen -> Instruction -> Screen
+updateScreen (Screen s) (DrawRect w h) = Screen $ s // [((i, j), True) | i <- [0..h - 1], j <- [0..w - 1]]
 
 solve :: String -> IO ()
 solve input = do
