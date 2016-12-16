@@ -18,25 +18,13 @@ rectInstruction :: Stream s m Char => ParsecT s u m Instruction
 rectInstruction = DrawRect <$> (try (string "rect ") *> intLiteral) <*> (char 'x' *> intLiteral)
 
 rotateRow :: Stream s m Char => ParsecT s u m Instruction
-rotateRow = do
-  string "row y="
-  y <- intLiteral
-  string " by "
-  n <- intLiteral
-  return (RotateRow y n)
+rotateRow = RotateRow <$> (string "row y=" *> intLiteral) <*> (string " by " *> intLiteral)
 
 rotateColumn :: Stream s m Char => ParsecT s u m Instruction
-rotateColumn = do
-  string "column x="
-  x <- intLiteral
-  string " by "
-  n <- intLiteral
-  return (RotateColumn x n)
+rotateColumn = RotateColumn <$> (string "column x=" *> intLiteral) <*> (string " by " *> intLiteral)
 
 rotateInstruction :: Stream s m Char => ParsecT s u m Instruction
-rotateInstruction = do
-  string "rotate "
-  rotateRow <|> rotateColumn
+rotateInstruction = string "rotate " *> (rotateRow <|> rotateColumn)
 
 instruction :: Stream s m Char => ParsecT s u m Instruction
 instruction = (rectInstruction <|> rotateInstruction) <* eol
