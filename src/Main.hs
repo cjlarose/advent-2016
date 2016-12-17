@@ -10,6 +10,7 @@ import qualified SignalsAndNoise
 import qualified InternetProtocolVersion7
 import qualified TwoFactorAuthentication
 import qualified ExplosivesInCyberspace
+import qualified BalanceBots
 
 solver :: Int -> (String -> IO ())
 solver 1 = Taxicab.solve
@@ -21,6 +22,7 @@ solver 6 = SignalsAndNoise.solve
 solver 7 = InternetProtocolVersion7.solve
 solver 8 = TwoFactorAuthentication.solve
 solver 9 = ExplosivesInCyberspace.solve
+solver 10 = BalanceBots.solve
 
 main :: IO ()
 main = do
