@@ -26,19 +26,15 @@ version1Block =
     text <- count length anyChar
     return (Compressed n [Literal text])
 
-columnAt pos = do
-  currentPos <- sourceColumn <$> getPosition
-  if currentPos == pos
-    then (return ())
-    else parserZero
-
 version2Block :: Stream s m Char => ParsecT s u m Block
 version2Block =
   literalBlock <|> do
     (length, n) <- marker
-    currentCol <- sourceColumn <$> getPosition
-    children <- manyTill version2Block (columnAt (currentCol + length))
-    return (Compressed n children)
+    section <- count length anyChar
+    let children = parse (manyTill version2Block eof) "" section
+    case children of
+      Left err -> parserZero
+      Right xs -> return (Compressed n xs)
 
 compressedData :: Stream s m Char => ParsecT s u m Block -> ParsecT s u m Block
 compressedData blockParser = Compressed 1 <$> many blockParser <* endOfLine <* eof
