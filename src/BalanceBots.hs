@@ -6,7 +6,7 @@ import qualified Data.Map.Strict as Map
 import Data.Foldable (foldl')
 import Data.Maybe (listToMaybe, isJust, fromJust)
 import Control.Monad.State (State, state, runState)
-import Control.Monad.Loops (untilM_, whileM_)
+import Control.Monad.Loops (untilJust, whileM_)
 import Text.Parsec.Prim (Stream, ParsecT, parse, (<|>))
 import Text.Parsec.Char (digit, string, endOfLine)
 import Text.Parsec.Combinator (many1, endBy, eof)
@@ -78,10 +78,7 @@ specialBot = state (\factory -> (specialBot' factory, factory))
     specialBot' = listToMaybe . map fst . filter (\(_, vs) -> specialList vs) . readyBots
 
 runFactoryUntilSpecialBotShowsHimself :: State Factory Bot
-runFactoryUntilSpecialBotShowsHimself = do
-  untilM_ runFactory (isJust <$> specialBot)
-  specialDude <- specialBot
-  return (fromJust specialDude)
+runFactoryUntilSpecialBotShowsHimself = untilJust (runFactory >> specialBot)
 
 hasWorkRemaining :: State Factory Bool
 hasWorkRemaining = state (\x -> (not . null . readyBots $ x, x))
