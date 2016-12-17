@@ -6,7 +6,7 @@ import qualified Data.Map.Strict as Map
 import Data.Foldable (foldl')
 import Data.Maybe (listToMaybe, isJust, fromJust)
 import Control.Monad.State (State, state, runState)
-import Control.Monad.Loops (untilM_)
+import Control.Monad.Loops (untilM_, whileM_)
 import Text.Parsec.Prim (Stream, ParsecT, parse, (<|>))
 import Text.Parsec.Char (digit, string, endOfLine)
 import Text.Parsec.Combinator (many1, endBy, eof)
@@ -83,6 +83,22 @@ runFactoryUntilSpecialBotShowsHimself = do
   specialDude <- specialBot
   return (fromJust specialDude)
 
+hasWorkRemaining :: State Factory Bool
+hasWorkRemaining = state (\x -> (not . null . readyBots $ x, x))
+
+inOutput :: Int -> State Factory Int
+inOutput bin = state (\x -> (inOutput' x, x))
+  where
+    inOutput' (_, possessions) = head $ possessions Map.! ToOutput bin
+
+runFactoryUntilDone :: State Factory Int
+runFactoryUntilDone = do
+  whileM_ hasWorkRemaining runFactory
+  a <- inOutput 0
+  b <- inOutput 1
+  c <- inOutput 2
+  return (a * b * c)
+
 solve :: String -> IO ()
 solve input = do
   let parsed = parse instructionList "" input
@@ -90,5 +106,7 @@ solve input = do
     Left err -> print err
     Right stmts -> do
       let factory = initialState stmts
-      let ((Bot b), _) = runState runFactoryUntilSpecialBotShowsHimself factory
-      print b
+      let (Bot special, f) = runState runFactoryUntilSpecialBotShowsHimself factory
+      print special
+      let (res, finishedF) = runState runFactoryUntilDone f
+      print res
