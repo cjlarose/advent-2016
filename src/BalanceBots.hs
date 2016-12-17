@@ -49,33 +49,33 @@ initialState stmts = (rules, possessions)
     rules = Map.fromList [(b, ds) | (RuleStmt b ds) <- stmts]
     possessions = Map.fromListWith (++) [(ToBot b, [v]) | (ValueStmt b v) <- stmts]
 
-runFactory' :: Factory -> Factory
-runFactory' (rules, possessions) = (rules, newPossessions)
+readyBots :: Factory -> [(Bot, [Int])]
+readyBots (_, possessions) = [(b, v) | ((ToBot b), v) <- readyDestinations]
   where
     readyDestinations :: [(Destination, [Int])]
     readyDestinations = Map.toList $ Map.filter ((== 2) . length) possessions
 
-    readyBots :: [(Bot, [Int])]
-    readyBots = [(b, v) | ((ToBot b), v) <- readyDestinations]
-
+runFactory' :: Factory -> Factory
+runFactory' factory@(rules, possessions) = (rules, newPossessions)
+  where
     updatesForBot :: (Bot, [Int]) -> [(Destination, Int)]
     updatesForBot (b, vs) = let (dl, dh) = rules Map.! b in [(dl, minimum vs), (dh, maximum vs)]
 
     additions :: [(Destination, Int)]
-    additions = concatMap updatesForBot readyBots
+    additions = concatMap updatesForBot (readyBots factory)
 
     possessionsWithAdditions = foldl' (\m (k, v) -> Map.insertWith (++) k [v] m) possessions additions
 
-    newPossessions = foldl' (flip Map.delete) possessionsWithAdditions (map (ToBot . fst) readyBots)
+    newPossessions = foldl' (flip Map.delete) possessionsWithAdditions (map (ToBot . fst) (readyBots factory))
 
 runFactory :: State Factory ()
 runFactory = state (\factory -> ((), runFactory' factory))
 
 specialBot :: State Factory (Maybe Bot)
-specialBot = state (\factory@(_, possessions) -> (specialBot' possessions, factory))
+specialBot = state (\factory -> (specialBot' factory, factory))
   where
     specialList xs = 61 `elem` xs && 17 `elem` xs
-    specialBot' ps = listToMaybe [b | (ToBot b, _) <- Map.toList $ Map.filter specialList ps]
+    specialBot' = listToMaybe . map fst . filter (\(_, vs) -> specialList vs) . readyBots
 
 runFactoryUntilSpecialBotShowsHimself :: State Factory Bot
 runFactoryUntilSpecialBotShowsHimself = do
