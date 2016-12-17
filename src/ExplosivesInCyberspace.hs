@@ -15,14 +15,15 @@ intLiteral = read <$> many1 digit
 marker :: Stream s m Char => ParsecT s u m (Int, Int)
 marker = (\a b -> (a, b)) <$> (char '(' *> intLiteral <* char 'x') <*> (intLiteral <* char ')')
 
-version1Block :: Stream s m Char => ParsecT s u m Block
-version1Block = do
-  (length, n) <- marker
-  text <- count length anyChar
-  return (Compressed n [Literal text])
-
 literalBlock :: Stream s m Char => ParsecT s u m Block
 literalBlock = Literal <$> many1 upper
+
+version1Block :: Stream s m Char => ParsecT s u m Block
+version1Block =
+  literalBlock <|> do
+    (length, n) <- marker
+    text <- count length anyChar
+    return (Compressed n [Literal text])
 
 columnAt pos = do
   currentPos <- sourceColumn <$> getPosition
