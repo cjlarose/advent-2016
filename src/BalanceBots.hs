@@ -50,7 +50,7 @@ initialState stmts = (rules, possessions)
     possessions = Map.fromListWith (++) [(ToBot b, [v]) | (ValueStmt b v) <- stmts]
 
 readyBots :: Factory -> [(Bot, [Int])]
-readyBots (_, possessions) = [(b, v) | ((ToBot b), v) <- readyDestinations]
+readyBots (_, possessions) = [(b, v) | (ToBot b, v) <- readyDestinations]
   where
     readyDestinations :: [(Destination, [Int])]
     readyDestinations = Map.toList $ Map.filter ((== 2) . length) possessions
