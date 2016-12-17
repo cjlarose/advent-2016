@@ -2,6 +2,7 @@
 
 module ExplosivesInCyberspace (solve) where
 
+import Control.Monad (forM_)
 import Text.Parsec.Prim (Stream, ParsecT, parse, many, (<|>), getPosition, parserZero)
 import Text.Parsec.Char (anyChar, digit, char, endOfLine, upper)
 import Text.Parsec.Combinator (count, many1, eof, manyTill)
@@ -48,12 +49,9 @@ decompressedLength (Compressed n children) = n * (sum . map decompressedLength $
 
 solve :: String -> IO ()
 solve input = do
-  let parsedAsVersion1 = parse (compressedData version1Block) "" input
-  case parsedAsVersion1 of
-    Left err -> print err
-    Right doc -> print $ decompressedLength doc
-
-  let parsedAsVersion2 = parse (compressedData version2Block) "" input
-  case parsedAsVersion2 of
-    Left err -> print err
-    Right doc -> print $ decompressedLength doc
+  let blockParsers = [version1Block, version2Block]
+  forM_ blockParsers (\blockParser -> do
+    let parsed = parse (compressedData blockParser) "" input
+    case parsed of
+      Left err -> print err
+      Right doc -> print $ decompressedLength doc)
