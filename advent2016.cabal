@@ -24,3 +24,5 @@ executable advent2016
                      , nibblestring
                      , containers
                      , array
+                     , mtl
+                     , monad-loops
