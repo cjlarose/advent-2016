@@ -73,6 +73,10 @@ validNextSteps facility@(floorsAbove, floor, floorsBelow) = do
   let newFacility@(_, newFloor, _) = move facility direction payload
   if safeFloor newFloor then return newFacility else []
 
+readyForAssembly :: FacilityZipper -> Bool
+readyForAssembly ([], _, floorsBelow) = not . any (not . Set.null) $ floorsBelow
+readyForAssembly _ = False
+
 solve :: String -> IO ()
 solve input = do
   let parsed = parse facilityDescription "" input
