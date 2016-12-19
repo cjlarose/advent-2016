@@ -25,7 +25,7 @@ componentList :: Stream s m Char => ParsecT s u m Floor
 componentList = (Set.empty <$ string "nothing relevant") <|>
                 Set.union <$>
                 (string "a " *> (Set.fromList <$> component `sepBy` try (string ", a "))) <*>
-                (option Set.empty (Set.singleton <$> lastItem))
+                option Set.empty (Set.singleton <$> lastItem)
   where
     lastItem = optional (char ',') *> string " and a " *> component
 
