@@ -3,7 +3,9 @@
 module Generators (solve) where
 
 import qualified Data.Set as Set
-import Data.List (subsequences)
+import Data.List (subsequences, foldl')
+import Data.Maybe (fromJust)
+import qualified Data.OrdPSQ as PSQ
 import Text.Parsec.Prim (Stream, ParsecT, parse, (<|>), try)
 import Text.Parsec.Char (char, string, endOfLine, letter)
 import Text.Parsec.Combinator (many1, sepBy, option, optional, eof, endBy)
@@ -77,9 +79,25 @@ readyForAssembly :: FacilityZipper -> Bool
 readyForAssembly ([], _, floorsBelow) = not . any (not . Set.null) $ floorsBelow
 readyForAssembly _ = False
 
+ucs :: PSQ.OrdPSQ FacilityZipper Int [FacilityZipper] -> Set.Set FacilityZipper -> Int
+ucs pqueue visited | readyForAssembly minK = minP
+                   | otherwise = ucs newQueue (Set.insert minK visited)
+  where
+    (minK, minP, minV) = fromJust . PSQ.findMin $ pqueue
+    updateQueue q node | node `Set.member` visited = q
+                       | node `PSQ.member` q = PSQ.insert node (minP + 1) (minK:minV) $ PSQ.delete node q
+                       | otherwise = PSQ.insert node (minP + 1) (minK:minV) q
+    newQueue = foldl' updateQueue (PSQ.deleteMin pqueue) (validNextSteps minK)
+
+shortestPathLength :: FacilityZipper -> Int
+shortestPathLength start = ucs (PSQ.singleton start 0 []) Set.empty
+
 solve :: String -> IO ()
 solve input = do
   let parsed = parse facilityDescription "" input
   case parsed of
     Left err -> print err
-    Right floors -> print floors
+    Right floors -> do
+      let zipper = zipperFromFloors floors
+      let numSteps = shortestPathLength zipper
+      print numSteps
