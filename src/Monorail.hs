@@ -14,6 +14,7 @@ data Machine = Machine { programCounter :: Int, registers :: Map.Map Register In
 type Instruction = State Machine ()
 
 machineStart = Machine { programCounter = 0, registers = Map.empty }
+machineStartPart2 = Machine { programCounter = 0, registers = Map.singleton (Register 'c') 1 }
 
 readRegister :: Register -> State Machine Int
 readRegister r = do
@@ -74,14 +75,14 @@ instruction = copyInstruction <|> incInstruction <|> decInstruction <|> jumpInst
 instructionList :: Stream s m Char => ParsecT s u m [Instruction]
 instructionList = instruction `endBy` endOfLine <* eof
 
-runMachineUntilHalt :: [Instruction] -> State Machine (Map.Map Register Int)
+runMachineUntilHalt :: [Instruction] -> State Machine Int
 runMachineUntilHalt xs = do
   let step = getProgramCounter >>= (\pc -> xs !! pc)
   let halted = getProgramCounter >>= (\pc -> return (pc >= length xs))
 
   step `untilM_` halted
-  m <- get
-  return (registers m)
+  answer <- readRegister (Register 'a')
+  return answer
 
 solve :: String -> IO ()
 solve input = do
@@ -91,3 +92,6 @@ solve input = do
     Right instructions -> do
       let (registerState, _) = runState (runMachineUntilHalt instructions) machineStart
       print registerState
+
+      let (registerStatePart2, _) = runState (runMachineUntilHalt instructions) machineStartPart2
+      print registerStatePart2
