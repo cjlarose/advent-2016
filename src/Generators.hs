@@ -101,3 +101,11 @@ solve input = do
       let zipper = zipperFromFloors floors
       let numSteps = shortestPathLength zipper
       print numSteps
+
+      let additionalComponents = Set.fromList [("elerium", Generator),
+                                               ("elerium", Microchip),
+                                               ("dilithium", Generator),
+                                               ("dilithium", Microchip)]
+      let newFirstFloor = Set.union additionalComponents (head floors)
+      let newZipper = zipperFromFloors (newFirstFloor:tail floors)
+      print $ shortestPathLength newZipper
