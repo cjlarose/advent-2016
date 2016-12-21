@@ -3,7 +3,6 @@
 module Monorail (solve) where
 
 import qualified Data.Map.Strict as Map
-import Control.Monad (unless)
 import Control.Monad.State (State, get, modify, runState)
 import Control.Monad.Loops (untilM_)
 import Text.Parsec.Prim (Stream, ParsecT, many, (<|>), parse)
@@ -37,7 +36,7 @@ jump :: Int -> State Machine ()
 jump relJump = modify (\m -> m { programCounter = programCounter m + relJump })
 
 jumpNotZero :: Int -> Int -> State Machine ()
-jumpNotZero relJump val = unless (val == 0) $ jump relJump
+jumpNotZero relJump val = if (val == 0) then advanceProgramCounter else jump relJump
 
 immediate :: Stream s m Char => ParsecT s u m Int
 immediate = option id (char '-' >> return negate) <*> (read <$> many1 digit)
