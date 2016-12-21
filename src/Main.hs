@@ -12,6 +12,7 @@ import qualified TwoFactorAuthentication
 import qualified ExplosivesInCyberspace
 import qualified BalanceBots
 import qualified Generators
+import qualified Monorail
 
 solver :: Int -> (String -> IO ())
 solver 1 = Taxicab.solve
@@ -25,6 +26,7 @@ solver 8 = TwoFactorAuthentication.solve
 solver 9 = ExplosivesInCyberspace.solve
 solver 10 = BalanceBots.solve
 solver 11 = Generators.solve
+solver 12 = Monorail.solve
 
 main :: IO ()
 main = do
