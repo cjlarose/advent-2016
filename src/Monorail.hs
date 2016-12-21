@@ -11,7 +11,7 @@ newtype Register = Register Char deriving Show
 data Instruction = CopyImmediate Int Register | CopyRegister Register Register | Inc Register | Dec Register | Jump Int | JumpNonZero Register Int deriving Show
 
 immediate :: Stream s m Char => ParsecT s u m Int
-immediate = (\a b -> if a == '-' then negate (read b) else read b) <$> option '+' (char '-') <*> many1 digit
+immediate = option id (char '-' >> return negate) <*> (read <$> many1 digit)
 
 register :: Stream s m Char => ParsecT s u m Register
 register = Register <$> oneOf "abcd"
