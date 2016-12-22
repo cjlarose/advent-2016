@@ -30,19 +30,15 @@ ucs m dst pq visited | minK == dst = minP
                      | otherwise = ucs m dst newQ (Set.insert minK visited)
   where
     (minK, minP, _) = fromJust . PSQ.findMin $ pq
-
-    f :: PSQ.OrdPSQ (Int, Int) Int () -> (Int, Int) -> PSQ.OrdPSQ (Int, Int) Int ()
-    f q n = PSQ.insert n (minP + 1) () q
-
-    newQ :: PSQ.OrdPSQ (Int, Int) Int ()
-    newQ = foldl' f (PSQ.deleteMin pq) $ openSpaceNeighbors m minK
+    newQ = foldl' (\q n -> PSQ.insert n (minP + 1) () q) (PSQ.deleteMin pq) $ openSpaceNeighbors m minK
 
 shortestPathLength :: Maze -> (Int, Int) -> (Int, Int) -> Int
 shortestPathLength m src dst = ucs m dst (PSQ.singleton src 0 ()) Set.empty
 
 possibleDestinations :: Maze -> (Int, Int) -> Int -> Set.Set (Int, Int)
-possibleDestinations m src n =
-  iterate (\xs -> Set.union (Set.unions (map (Set.fromList . openSpaceNeighbors m) (Set.toList xs))) xs) (Set.singleton src) !! n
+possibleDestinations m src n = iterate stepOnce (Set.singleton src) !! n
+  where
+    stepOnce xs = Set.foldl' (\acc x -> Set.union acc (Set.fromList . openSpaceNeighbors m $ x)) xs xs
 
 solve :: String -> IO ()
 solve input = do
