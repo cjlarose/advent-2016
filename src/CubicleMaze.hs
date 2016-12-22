@@ -40,6 +40,10 @@ ucs m dst pq visited | minK == dst = minP
 shortestPathLength :: Maze -> (Int, Int) -> (Int, Int) -> Int
 shortestPathLength m src dst = ucs m dst (PSQ.singleton src 0 ()) Set.empty
 
+possibleDestinations :: Maze -> (Int, Int) -> Int -> Set.Set (Int, Int)
+possibleDestinations m src n =
+  iterate (\xs -> Set.union (Set.unions (map (Set.fromList . openSpaceNeighbors m) (Set.toList xs))) xs) (Set.singleton src) !! n
+
 solve :: String -> IO ()
 solve input = do
   let parsed = parse designersNumber "" input
@@ -49,3 +53,6 @@ solve input = do
       let cubicleMaze = maze favoriteNumber
       let pathLength = shortestPathLength cubicleMaze (1, 1) (31, 39)
       print pathLength
+
+      let uniqDests = possibleDestinations cubicleMaze (1, 1) 50
+      print . Set.size $ uniqDests
