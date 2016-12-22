@@ -14,6 +14,7 @@ import qualified BalanceBots
 import qualified Generators
 import qualified Monorail
 import qualified CubicleMaze
+import qualified OneTimePad
 
 solver :: Int -> (String -> IO ())
 solver 1 = Taxicab.solve
@@ -29,6 +30,7 @@ solver 10 = BalanceBots.solve
 solver 11 = Generators.solve
 solver 12 = Monorail.solve
 solver 13 = CubicleMaze.solve
+solver 14 = OneTimePad.solve
 
 main :: IO ()
 main = do
