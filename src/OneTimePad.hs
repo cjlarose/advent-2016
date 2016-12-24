@@ -29,11 +29,11 @@ keys' (h:hs) i = if isKey then (i, h) : keys' hs (i + 1) else keys' hs (i + 1)
   where
     isKey = maybe False (\c -> any (isInfixOf (replicate 5 c)) (take 1000 hs)) $ findTriplet h
 
-keys :: String -> [(Int, [NS.Nibble])]
-keys prefix = keys' (map toNibbleList $ allHashes prefix) 0
+keys :: [B.ByteString] -> [(Int, [NS.Nibble])]
+keys hashes = keys' (map toNibbleList hashes) 0
 
 solve :: String -> IO ()
 solve input = do
   let prefix = head . lines $ input
-  let ks = keys prefix
+  let ks = keys $ allHashes prefix
   print . fst $ ks !! 63
