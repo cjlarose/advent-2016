@@ -2,6 +2,7 @@ module OneTimePad (solve) where
 
 import Data.List (tails, isInfixOf)
 import Data.Maybe (listToMaybe)
+import Numeric (showHex)
 import qualified Data.ByteString as B
 import Data.ByteString.Char8 (pack)
 import qualified Crypto.Hash.MD5 as MD5
@@ -32,8 +33,15 @@ keys' (h:hs) i = if isKey then (i, h) : keys' hs (i + 1) else keys' hs (i + 1)
 keys :: [B.ByteString] -> [(Int, [NS.Nibble])]
 keys hashes = keys' (map toNibbleList hashes) 0
 
+stretchHash :: B.ByteString -> B.ByteString
+stretchHash = MD5.hash . pack . concatMap (`showHex` "") . toNibbleList
+
 solve :: String -> IO ()
 solve input = do
   let prefix = head . lines $ input
   let ks = keys $ allHashes prefix
   print . fst $ ks !! 63
+
+  let stretchedHashes = map (\x -> iterate stretchHash x !! 2016) $ allHashes prefix
+  let stretchedKeys = keys stretchedHashes
+  print . fst $ stretchedKeys !! 63
