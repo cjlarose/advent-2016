@@ -16,6 +16,7 @@ import qualified Monorail
 import qualified CubicleMaze
 import qualified OneTimePad
 import qualified TimingIsEverything
+import qualified DragonChecksum
 
 solver :: Int -> (String -> IO ())
 solver 1 = Taxicab.solve
@@ -33,6 +34,7 @@ solver 12 = Monorail.solve
 solver 13 = CubicleMaze.solve
 solver 14 = OneTimePad.solve
 solver 15 = TimingIsEverything.solve
+solver 16 = DragonChecksum.solve
 
 main :: IO ()
 main = do
