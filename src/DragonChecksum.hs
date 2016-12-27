@@ -24,7 +24,9 @@ formatBits = map (\x -> if x then '1' else '0')
 
 solve :: String -> IO ()
 solve input = do
-  let desiredLenth = 272
   let initialState = map (== '1') . head . lines $ input
-  let finalState = bitsToFillDisk initialState desiredLenth
-  putStrLn . formatBits . checksum $ finalState
+  let finalStatePart1 = bitsToFillDisk initialState 272
+  putStrLn . formatBits . checksum $ finalStatePart1
+
+  let finalStatePart2 = bitsToFillDisk initialState 35651584
+  putStrLn . formatBits . checksum $ finalStatePart2
