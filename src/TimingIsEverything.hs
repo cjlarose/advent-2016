@@ -35,3 +35,8 @@ solve input = do
     Right ds -> do
       let t = timeToDrop ds
       print t
+
+      let newDisk t = (t `mod` 11) == 0
+      let newDs = ds ++ [newDisk]
+      let newT = timeToDrop newDs
+      print newT
