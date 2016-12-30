@@ -26,6 +26,10 @@ countSafe = length . filter (== Safe)
 solve :: String -> IO ()
 solve input = do
   let firstRow = fromString . head . lines $ input
-  let allRows = take 40 . iterate nextRow $ firstRow
+  let first40Rows = take 40 . iterate nextRow $ firstRow
+  let numSafeFirst40 = sum . map countSafe $ first40Rows
+  print numSafeFirst40
+
+  let allRows = take 400000 . iterate nextRow $ firstRow
   let numSafe = sum . map countSafe $ allRows
   print numSafe
