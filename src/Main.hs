@@ -18,6 +18,7 @@ import qualified OneTimePad
 import qualified TimingIsEverything
 import qualified DragonChecksum
 import qualified TwoStepsForward
+import qualified Rogue
 
 solver :: Int -> (String -> IO ())
 solver 1 = Taxicab.solve
@@ -37,6 +38,7 @@ solver 14 = OneTimePad.solve
 solver 15 = TimingIsEverything.solve
 solver 16 = DragonChecksum.solve
 solver 17 = TwoStepsForward.solve
+solver 18 = Rogue.solve
 
 main :: IO ()
 main = do
