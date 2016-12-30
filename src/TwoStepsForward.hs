@@ -1,7 +1,8 @@
 module TwoStepsForward (solve) where
 
-import Data.List (intersect, foldl')
-import Data.Maybe (fromJust)
+import Data.List (intersect, foldl', maximumBy)
+import Data.Ord (comparing)
+import Data.Maybe (fromJust, mapMaybe)
 import Data.Bits ((.&.), shiftR)
 import Data.Word (Word8)
 import qualified Data.ByteString as B
@@ -49,8 +50,28 @@ search gd prefix dst q | minV == dst = minK
 shortestPath :: GridDimensions -> String -> [Direction]
 shortestPath gd@(m, n) prefix = search gd prefix (m - 1, n - 1) (PSQ.singleton [] 0 (0, 0))
 
+stepOnce :: GridDimensions -> String -> (Position, [Direction]) -> [(Position, [Direction])]
+stepOnce gd prefix (pos, ds) = map (\dir -> (adj pos dir, ds ++ [dir])) validDoors
+  where
+    validDoors = neighbors gd pos `intersect` openDoors prefix ds
+
+longestPath' :: GridDimensions -> String -> (Position, [Direction]) -> Position -> Maybe [Direction]
+longestPath' gd prefix src@(pos, path) dst | pos == dst = Just path
+                                           | null adjacentPaths = Nothing
+                                           | otherwise  = Just $ maximumBy (comparing length) adjacentPaths
+  where
+    neighbors = stepOnce gd prefix src
+    adjacentPaths = mapMaybe (\neighbor -> longestPath' gd prefix neighbor dst) neighbors
+
+longestPath :: GridDimensions -> String -> [Direction]
+longestPath gd@(m, n) prefix = fromJust $ longestPath' gd prefix ((0, 0), []) (m - 1, n - 1)
+
 solve :: String -> IO ()
 solve input = do
   let passcode = head . lines $ input
-  let directionList = shortestPath (4, 4) passcode
+  let gridDimensions = (4, 4)
+  let directionList = shortestPath gridDimensions passcode
   putStrLn . concatMap show $ directionList
+
+  let path = longestPath gridDimensions passcode
+  print . length $ path
