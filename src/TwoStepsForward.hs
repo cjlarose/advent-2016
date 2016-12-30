@@ -38,22 +38,22 @@ adj (i, j) D = (i + 1, j)
 adj (i, j) L = (i, j - 1)
 adj (i, j) R = (i, j + 1)
 
+stepOnce :: GridDimensions -> String -> (Position, [Direction]) -> [(Position, [Direction])]
+stepOnce gd prefix (pos, ds) = map (\dir -> (adj pos dir, ds ++ [dir])) validDoors
+  where
+    validDoors = neighbors gd pos `intersect` openDoors prefix ds
+
 search :: GridDimensions -> String -> Position -> PSQ.OrdPSQ [Direction] Int Position -> [Direction]
 search gd prefix dst q | minV == dst = minK
                        | otherwise = search gd prefix dst newQ
   where
     (minK, minP, minV) = fromJust . PSQ.findMin $ q
-    validDoors = neighbors gd minV `intersect` openDoors prefix minK
-    updateQ q dir = PSQ.insert (minK ++ [dir]) (minP + 1) (adj minV dir) q
-    newQ = foldl' updateQ (PSQ.deleteMin q) validDoors
+    neighbors = stepOnce gd prefix (minV, minK)
+    updateQ q (pos, dirs) = PSQ.insert dirs (minP + 1) pos q
+    newQ = foldl' updateQ (PSQ.deleteMin q) neighbors
 
 shortestPath :: GridDimensions -> String -> [Direction]
 shortestPath gd@(m, n) prefix = search gd prefix (m - 1, n - 1) (PSQ.singleton [] 0 (0, 0))
-
-stepOnce :: GridDimensions -> String -> (Position, [Direction]) -> [(Position, [Direction])]
-stepOnce gd prefix (pos, ds) = map (\dir -> (adj pos dir, ds ++ [dir])) validDoors
-  where
-    validDoors = neighbors gd pos `intersect` openDoors prefix ds
 
 longestPath' :: GridDimensions -> String -> (Position, [Direction]) -> Position -> Maybe [Direction]
 longestPath' gd prefix src@(pos, path) dst | pos == dst = Just path
