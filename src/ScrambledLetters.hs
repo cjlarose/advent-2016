@@ -2,7 +2,7 @@
 
 module ScrambledLetters (solve) where
 
-import Data.List (elemIndex)
+import Data.List (elemIndex, permutations, find)
 import Data.Maybe (fromJust)
 import Text.Parsec.Prim (Stream, ParsecT, parse, (<|>), try)
 import Text.Parsec.Char (endOfLine, string, char, digit, letter)
@@ -100,6 +100,9 @@ instructionList = instruction `endBy` endOfLine <* eof
 scramble :: [Instruction] -> Instruction
 scramble = foldl (flip (.)) id
 
+unscramble :: [Instruction] -> String -> String
+unscramble xs str = fromJust . find (\candidate -> scramble xs candidate == str) $ permutations str
+
 solve :: String -> IO ()
 solve input = do
   let parsed = parse instructionList "" input
@@ -109,3 +112,6 @@ solve input = do
       let password = "abcdefgh"
       let scrambed = scramble instructions password
       putStrLn scrambed
+
+      let unscrambled = unscramble instructions "fbgdceah"
+      putStrLn unscrambled
