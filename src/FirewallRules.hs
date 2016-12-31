@@ -31,6 +31,9 @@ permittedRanges = foldl' f [(minBound, maxBound)]
   where
     f includes exclude = concatMap (`excludeFromRange` exclude) includes
 
+rangeSize :: (Word32, Word32) -> Int
+rangeSize (lo, hi) = fromIntegral $ hi - lo + 1
+
 solve :: String -> IO ()
 solve input = do
   let parsed = parse ipRangeList "" input
@@ -39,3 +42,6 @@ solve input = do
     Right ipRanges -> do
       let ranges = permittedRanges ipRanges
       print . fst . head $ ranges
+
+      let numAllowed = sum . map rangeSize $ ranges
+      print numAllowed
